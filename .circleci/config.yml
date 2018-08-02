@@ -87,8 +87,8 @@ jobs:
       - run:
           name: Install composer dependencies
           command: |
-            EXEC_IN_PHP_FPM_POD=kubectl exec $(kubectl get pods -l app=webserver -o=jsonpath='{.items[0].metadata.name}') -c php
-            $EXEC_IN_PHP_FPM_POD composer global require hirak/prestissimo
+            PHP_FPM_POD=$(kubectl get pods -l app=webserver -odata.name}')
+            kubectl exec $EXEC_IN_PHP_FPM_POD -c php composer global require hirak/prestissimo
       - store_artifacts:
           path: project-base/k8s
 
