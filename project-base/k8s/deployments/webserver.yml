@@ -39,6 +39,13 @@ spec:
             items:
             - key: php-ini-overrides.ini
               path: php.ini
+      initContainers:
+      - name: fix-volume-permissions
+        image: busybox
+        command: ["sh", "-c", "chown -R 1000:1000 /workspace"]
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
       containers:
       - image: nginx:1.13.10-alpine
         name: nginx
