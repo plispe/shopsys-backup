@@ -81,7 +81,7 @@ jobs:
 
             for deployment in "${deployments_to_wait_for[@]}"
             do
-              kubectl rollout status deployment/$deployment --watch
+              kubectl rollout status deployment/$deployment --namespace $CIRCLE_BRANCH --watch
             done
       - store_artifacts:
           path: project-base/k8s
