@@ -50,12 +50,41 @@ jobs:
           environment:
             DEVELOPMENT_SERVER_DOMAIN: p4a.me
       - run:
-          name: Deploy application to Kubernetes cluster
+          name: Setup Kubernetes cluster connection
           command: |
-            # kubectl
-            # kubectl create configmap nginx-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/nginx/nginx.conf
-            # kubectl create configmap php-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/php-fpm/php-ini-overrides.ini
-          working_directory: project-base/k8s
+            mkdir -p ~/.minikube
+            mkdir -p ~/.kube
+            echo $KUBERNETES_CONFIG_FILE > ~/.kube/config
+            echo $KUBERNETES_CA_CRT > ~/.minikube/ca.crt
+            echo $KUBERNETES_CLIENT_CRT > ~/.minikube/client.crt
+            echo $KUBERNETES_CLIENT_KEY > ~/.minikube/client.crt
+            kubect get pods
+
+      # - run:
+      #     name: Deploy application to Kubernetes cluster
+      #     command: |
+      #       # kubectl apply --file namespace.yml
+      #       # kubectl create configmap nginx-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/nginx/nginx.conf
+      #       # kubectl create configmap php-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/php-fpm/php-ini-overrides.ini
+      #       # Kubectl apply --recursive --file .
+      #     working_directory: project-base/k8s
+      # - run:
+      #     name: Wait for rollouts
+      #     command: |
+      #       # declare -a deployments_to_wait_for=(
+      #       #   "adminer"
+      #       #   "postgres"
+      #       #   "redis"
+      #       #   "redis-admin"
+      #       #   "selenium-server"
+      #       #   "smtp-server"
+      #       #   "webserver"
+      #       # )
+
+      #       # for deployment in "${deployments_to_wait_for[@]}"
+      #       # do
+      #       #   kubectl rollout status deployment/$deployment --watch
+      #       # done
       - store_artifacts:
           path: project-base/k8s
 
