@@ -1,0 +1,46 @@
+defaults: &defaults
+  docker:
+    - image: petrpliska/shopsys-buildpack:0.1.1
+      auth:
+        username: $DOCKER_USERNAME
+        password: $DOCKER_PASSWORD
+  working_directory: ~/source
+
+login-to-dockerhub: &login-to-dockerhub
+  name: Login to Docker hub
+  command: echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
+
+version: 2
+jobs:
+  deploy-to-k8s:
+    <<: *defaults
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run:
+          name: Build docker image
+          command: |
+            # Calculate Docker image tag from Dockerfile checksum. Docker Image tag is used later in Kubernetes deployment.
+            # On shopsys development server we can assume, that Docker image used by Kubernetes deployment will be always present, because it was builded on same server.
+            # In common we should push this image into Docker registry and use image from registry later.
+            DOCKER_IMAGE="${$DOCKER_IMAGE:=shopsys/shopsys}"
+            DOCKER_IMAGE_TAG="$(cksum Dockerfile | cut -d ' ' -f1)"
+            WWW_DATA_UID="${WWW_DATA_UID:=$(id -u)}"
+            WWW_DATA_GID="${WWW_DATA_GID:=$(id -g)}"
+            docker image build \
+              --build-arg www_data_uid=$WWW_DATA_UID \
+              --build-arg www_data_gid=$WWW_DATA_GID \
+              --tag $DOCKER_IMAGE:$DOCKER_IMAGE_TAG
+              --tag $DOCKER_IMAGE:latest .
+            # @matous.czerner On shopsys server you can omit following commands
+            echo $WWW_DATA_UID
+            echo $WWW_DATA_GID
+          working_directory: project-base/docker/php-fpm
+workflows:
+  version: 2
+  deployment:
+    jobs:
+      - deploy-to-k8s:
+          filters:
+            tags:
+              ignore: /.*/
