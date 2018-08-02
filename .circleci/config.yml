@@ -58,7 +58,7 @@ jobs:
             echo $KUBERNETES_CA_CRT > ~/.minikube/ca.crt
             echo $KUBERNETES_CLIENT_CRT > ~/.minikube/client.crt
             echo $KUBERNETES_CLIENT_KEY > ~/.minikube/client.crt
-            kubect get pods
+            kubectl get pods
 
       # - run:
       #     name: Deploy application to Kubernetes cluster
