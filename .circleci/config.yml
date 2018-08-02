@@ -62,11 +62,10 @@ jobs:
           name: Deploy application to Kubernetes cluster
           command: |
             kubectl apply -f namespace.yml
-            kubectl config set-context minikube-branch-namespace --user=minikube --namespace=$CIRCLE_BRANCH && \
-            kubectl config use-context minikube-branch-namespace
+            kubectl config set-context $(kubectl config current-context) --namespace=$CIRCLE_BRANCH
             kubectl create configmap nginx-configuration --from-file ../docker/nginx/nginx.conf || true
             kubectl create configmap php-configuration --from-file ../docker/php-fpm/php-ini-overrides.ini || true
-            kubectl apply  --recursive -f .
+            kubectl apply --recursive -f .
           working_directory: project-base/k8s
       - run:
           name: Wait for rollouts
