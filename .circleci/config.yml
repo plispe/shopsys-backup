@@ -30,7 +30,7 @@ jobs:
             docker image build \
               --build-arg www_data_uid=$WWW_DATA_UID \
               --build-arg www_data_gid=$WWW_DATA_GID \
-              --tag $DOCKER_IMAGE:$DOCKER_IMAGE_TAG
+              --tag $DOCKER_IMAGE:$DOCKER_IMAGE_TAG \
               --tag $DOCKER_IMAGE:latest .
             # @matous.czerner On shopsys server you can omit following commands
             echo $WWW_DATA_UID
