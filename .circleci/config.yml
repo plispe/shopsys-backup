@@ -62,8 +62,8 @@ jobs:
           name: Deploy application to Kubernetes cluster
           command: |
             kubectl apply -f namespace.yml
-            kubectl create configmap nginx-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/nginx/nginx.conf
-            kubectl create configmap php-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/php-fpm/php-ini-overrides.ini
+            kubectl create configmap nginx-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/nginx/nginx.conf || true
+            kubectl create configmap php-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/php-fpm/php-ini-overrides.ini || true
             kubectl apply --recursive -f .
           working_directory: project-base/k8s
       # - run:
