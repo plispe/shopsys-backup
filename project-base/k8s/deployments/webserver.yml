@@ -24,9 +24,6 @@ spec:
         - name: workspace
           hostPath:
             path: /workspace
-        # - name: source-codes
-        #   hostPath:
-        #     path: /home/docker/shopsys
         - name: nginx-configuration
           configMap:
             name: nginx-configuration
@@ -55,8 +52,8 @@ spec:
         volumeMounts:
           - name: nginx-configuration
             mountPath: /etc/nginx/conf.d
-          # - name: source-codes
-          #   mountPath: /var/www/html
+          - name: workspace
+            mountPath: /var/www/html
         lifecycle:
           preStop:
             exec:

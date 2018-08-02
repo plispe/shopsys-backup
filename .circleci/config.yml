@@ -46,6 +46,7 @@ jobs:
             yq write --inplace namespace.yml metadata.name $CIRCLE_BRANCH
             yq write --inplace ingress.yml spec.rules[0].host $CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
             yq write --inplace deployments/webserver.yml spec.template.spec.containers[1].image $DOCKER_IMAGE:$DOCKER_IMAGE_TAG
+            yq write --inplace deployments/webserver.yml spec.template.spec.volumes[0].hostPath.path /workspace/shopsys/$DOCKER_IMAGE_TAG
           working_directory: project-base/k8s
           environment:
             DEVELOPMENT_SERVER_DOMAIN: p4a.me
@@ -70,6 +71,7 @@ jobs:
       - run:
           name: Wait for rollouts
           command: |
+            # Whole step will be reduced to one command in the future(When readiness probe will be implemented)
             declare -a deployments_to_wait_for=(
               "adminer"
               "postgres"
