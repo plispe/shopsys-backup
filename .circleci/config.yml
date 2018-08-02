@@ -23,7 +23,7 @@ jobs:
             # Calculate Docker image tag from Dockerfile checksum. Docker Image tag is used later in Kubernetes deployment.
             # On shopsys development server we can assume, that Docker image used by Kubernetes deployment will be always present, because it was builded on same server.
             # In common we should push this image into Docker registry and use image from registry later.
-            DOCKER_IMAGE="${$DOCKER_IMAGE:=shopsys/shopsys}"
+            DOCKER_IMAGE="${DOCKER_IMAGE:=shopsys/shopsys}"
             DOCKER_IMAGE_TAG="$(cksum Dockerfile | cut -d ' ' -f1)"
             WWW_DATA_UID="${WWW_DATA_UID:=$(id -u)}"
             WWW_DATA_GID="${WWW_DATA_GID:=$(id -g)}"
