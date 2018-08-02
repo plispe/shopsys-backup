@@ -60,5 +60,3 @@ spec:
             subPath: php.ini
           - name: sources
             mountPath: /var/www/html
-          # - name: source-codes
-          #   mountPath: /var/www/html
