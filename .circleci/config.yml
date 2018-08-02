@@ -61,10 +61,10 @@ jobs:
       - run:
           name: Deploy application to Kubernetes cluster
           command: |
-            kubectl apply --file namespace.yml
+            kubectl apply -f namespace.yml
             kubectl create configmap nginx-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/nginx/nginx.conf
             kubectl create configmap php-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/php-fpm/php-ini-overrides.ini
-            Kubectl apply --recursive --file .
+            Kubectl apply --recursive -f .
           working_directory: project-base/k8s
       # - run:
       #     name: Wait for rollouts
