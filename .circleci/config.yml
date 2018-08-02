@@ -101,7 +101,7 @@ jobs:
             PHP_FPM_POD=$(kubectl get pods -l app=webserver -o=jsonpath='{.items[0].metadata.name}')
             kubectl exec $PHP_FPM_POD -c php composer global require hirak/prestissimo
             kubectl exec $PHP_FPM_POD -c php -- composer config -g github-oauth.github.com $COMPOSER_GITHUB_OATUH_TOKEN
-            kubectl exec $PHP_FPM_POD -c php -- cp project-base/app/config/domains_urls.yml.dist project-base/app/config/domains_urls.yml
+            # kubectl exec $PHP_FPM_POD -c php -- cp project-base/app/config/domains_urls.yml.dist project-base/app/config/domains_urls.yml
             kubectl exec $PHP_FPM_POD -c php -- composer install --no-interaction --no-progress
       - store_artifacts:
           path: project-base/k8s
