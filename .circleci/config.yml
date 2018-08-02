@@ -18,13 +18,6 @@ jobs:
       - setup_remote_docker
       - checkout
       - run:
-          name: Try to pull docker image
-          command: |
-            DOCKER_IMAGE="${DOCKER_IMAGE:=shopsys/shopsys}"
-            DOCKER_IMAGE_TAG="$(cksum Dockerfile | cut -d ' ' -f1)"
-            docker image pull $DOCKER_IMAGE:$DOCKER_IMAGE_TAG
-          working_directory: project-base/docker/php-fpm
-      - run:
           name: Build docker image
           command: |
             # Calculate Docker image tag from Dockerfile checksum. Docker Image tag is used later in Kubernetes deployment.
@@ -34,7 +27,7 @@ jobs:
             DOCKER_IMAGE_TAG="$(cksum Dockerfile | cut -d ' ' -f1)"
             WWW_DATA_UID="${WWW_DATA_UID:=$(id -u)}"
             WWW_DATA_GID="${WWW_DATA_GID:=$(id -g)}"
-            docker image build \
+            docker image pull $DOCKER_IMAGE:$DOCKER_IMAGE_TAG || docker image build \
               --build-arg www_data_uid=$WWW_DATA_UID \
               --build-arg www_data_gid=$WWW_DATA_GID \
               --tag $DOCKER_IMAGE:$DOCKER_IMAGE_TAG \
