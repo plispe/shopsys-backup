@@ -30,14 +30,14 @@ jobs:
             WWW_DATA_UID="${WWW_DATA_UID:=$(id -u)}"
             WWW_DATA_GID="${WWW_DATA_GID:=$(id -g)}"
             # @matous.czerner You can omit docker image pull part of following command.
-            docker image pull $DOCKER_IMAGE:$DOCKER_IMAGE_TAG || docker image build \
+            docker image pull $DOCKER_IMAGE:$DOCKER_IMAGE_TAG || (docker image build \
               --build-arg www_data_uid=$WWW_DATA_UID \
               --build-arg www_data_gid=$WWW_DATA_GID \
               --tag $DOCKER_IMAGE:$DOCKER_IMAGE_TAG \
-              --tag $DOCKER_IMAGE:latest .
+              --tag $DOCKER_IMAGE:latest . && \
             # @matous.czerner On shopsys server you can omit following commands
-            docker image push $DOCKER_IMAGE:$DOCKER_IMAGE_TAG
-            docker image push $DOCKER_IMAGE:latest
+            docker image push $DOCKER_IMAGE:$DOCKER_IMAGE_TAG &&
+            docker image push $DOCKER_IMAGE:latest)
           working_directory: project-base/docker/php-fpm
 workflows:
   version: 2
