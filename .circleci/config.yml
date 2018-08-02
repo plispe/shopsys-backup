@@ -58,16 +58,14 @@ jobs:
             echo -e $KUBERNETES_CA_CRT > ~/.minikube/ca.crt
             echo -e $KUBERNETES_CLIENT_CRT > ~/.minikube/client.crt
             echo -e $KUBERNETES_CLIENT_KEY > ~/.minikube/client.key
-            kubectl get pods
-
-      # - run:
-      #     name: Deploy application to Kubernetes cluster
-      #     command: |
-      #       # kubectl apply --file namespace.yml
-      #       # kubectl create configmap nginx-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/nginx/nginx.conf
-      #       # kubectl create configmap php-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/php-fpm/php-ini-overrides.ini
-      #       # Kubectl apply --recursive --file .
-      #     working_directory: project-base/k8s
+      - run:
+          name: Deploy application to Kubernetes cluster
+          command: |
+            kubectl apply --file namespace.yml
+            kubectl create configmap nginx-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/nginx/nginx.conf
+            kubectl create configmap php-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/php-fpm/php-ini-overrides.ini
+            Kubectl apply --recursive --file .
+          working_directory: project-base/k8s
       # - run:
       #     name: Wait for rollouts
       #     command: |
