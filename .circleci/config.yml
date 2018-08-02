@@ -64,7 +64,7 @@ jobs:
             kubectl apply -f namespace.yml
             kubectl create configmap nginx-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/nginx/nginx.conf
             kubectl create configmap php-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/php-fpm/php-ini-overrides.ini
-            Kubectl apply --recursive -f .
+            kubectl apply --recursive -f .
           working_directory: project-base/k8s
       # - run:
       #     name: Wait for rollouts
