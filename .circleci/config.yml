@@ -18,7 +18,7 @@ jobs:
       - setup_remote_docker
       - checkout
       - run:
-          <<: *login-to-dockerhub
+           <<: *login-to-dockerhub
       - run:
           name: Build docker image
           command: |
@@ -39,7 +39,6 @@ jobs:
             docker image push $DOCKER_IMAGE:$DOCKER_IMAGE_TAG
             docker image push $DOCKER_IMAGE:latest
           working_directory: project-base/docker/php-fpm
-          when: on_fail
 workflows:
   version: 2
   deployment:
