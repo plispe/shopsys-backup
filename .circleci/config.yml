@@ -57,7 +57,7 @@ jobs:
             echo -e $KUBERNETES_CONFIG_FILE > ~/.kube/config
             echo -e $KUBERNETES_CA_CRT > ~/.minikube/ca.crt
             echo -e $KUBERNETES_CLIENT_CRT > ~/.minikube/client.crt
-            echo -e $KUBERNETES_CLIENT_KEY > ~/.minikube/client.crt
+            echo -e $KUBERNETES_CLIENT_KEY > ~/.minikube/client.key
             kubectl get pods
 
       # - run:
