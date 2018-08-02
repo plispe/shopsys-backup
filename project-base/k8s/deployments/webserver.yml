@@ -21,6 +21,9 @@ spec:
         hostnames:
         - "php-fpm"
       volumes:
+        - name: workspace
+          hostPath:
+            path: /workspace
         # - name: source-codes
         #   hostPath:
         #     path: /home/docker/shopsys
@@ -58,5 +61,7 @@ spec:
           - name: php-configuration
             mountPath: /usr/local/etc/php/php.ini
             subPath: php.ini
+          - name: workspace
+            mountPath: /workspace
           # - name: source-codes
           #   mountPath: /var/www/html
