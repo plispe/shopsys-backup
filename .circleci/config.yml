@@ -64,25 +64,25 @@ jobs:
             kubectl apply -f namespace.yml
             kubectl create configmap nginx-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/nginx/nginx.conf || true
             kubectl create configmap php-configuration --namespace $CIRCLE_BRANCH --from-file ../docker/php-fpm/php-ini-overrides.ini || true
-            kubectl apply --recursive -f .
+            kubectl apply --namespace $CIRCLE_BRANCH --recursive -f .
           working_directory: project-base/k8s
-      # - run:
-      #     name: Wait for rollouts
-      #     command: |
-      #       # declare -a deployments_to_wait_for=(
-      #       #   "adminer"
-      #       #   "postgres"
-      #       #   "redis"
-      #       #   "redis-admin"
-      #       #   "selenium-server"
-      #       #   "smtp-server"
-      #       #   "webserver"
-      #       # )
+      - run:
+          name: Wait for rollouts
+          command: |
+            declare -a deployments_to_wait_for=(
+              "adminer"
+              "postgres"
+              "redis"
+              "redis-admin"
+              "selenium-server"
+              "smtp-server"
+              "webserver"
+            )
 
-      #       # for deployment in "${deployments_to_wait_for[@]}"
-      #       # do
-      #       #   kubectl rollout status deployment/$deployment --watch
-      #       # done
+            for deployment in "${deployments_to_wait_for[@]}"
+            do
+              kubectl rollout status deployment/$deployment --watch
+            done
       - store_artifacts:
           path: project-base/k8s
 
