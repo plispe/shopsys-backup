@@ -24,6 +24,9 @@ spec:
         - name: workspace
           hostPath:
             path: /workspace
+        - name: workspace-root
+          hostPath:
+            path: /workspace
         - name: nginx-configuration
           configMap:
             name: nginx-configuration
@@ -41,7 +44,7 @@ spec:
         image: busybox
         command: ["sh", "-c", "chown -R 1000:1000 /workspace"]
         volumeMounts:
-        - name: workspace
+        - name: workspace-root
           mountPath: /workspace
       containers:
       - image: nginx:1.13.10-alpine
