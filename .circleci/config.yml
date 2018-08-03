@@ -40,71 +40,78 @@ jobs:
             docker image push $DOCKER_IMAGE:latest)
           working_directory: project-base/docker/php-fpm
       - run:
-          name: Generate Kubernetes manifests for current build
-          command: |
-            DOCKER_IMAGE_TAG="$(cksum ../docker/php-fpm/Dockerfile | cut -d ' ' -f1)"
-            yq write --inplace namespace.yml metadata.name $CIRCLE_BRANCH
-            yq write --inplace ingress.yml spec.rules[0].host $CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
-            yq write --inplace deployments/webserver.yml spec.template.spec.containers[1].image $DOCKER_IMAGE:$DOCKER_IMAGE_TAG
-            yq write --inplace deployments/webserver.yml spec.template.spec.volumes[0].hostPath.path /workspace/shopsys/$CIRCLE_BRANCH/sources
-          working_directory: project-base/k8s
-          environment:
-            DEVELOPMENT_SERVER_DOMAIN: p4a.me
-      - run:
-          name: Setup Kubernetes cluster connection
-          command: |
-            mkdir -p ~/.minikube
-            mkdir -p ~/.kube
-            echo -e $KUBERNETES_CONFIG_FILE > ~/.kube/config
-            echo -e $KUBERNETES_CA_CRT > ~/.minikube/ca.crt
-            echo -e $KUBERNETES_CLIENT_CRT > ~/.minikube/client.crt
-            echo -e $KUBERNETES_CLIENT_KEY > ~/.minikube/client.key
-      - run:
           name: Copy source into cluster
           command: |
             echo -e $SERVER_SSL_CERT > ~/shopsys
             chmod 0400 ~/shopsys
-            ssh -o "StrictHostKeyChecking no" -i ~/shopsys root@shopsys.p4a.me rm -rf /workspace/shopsys/$CIRCLE_BRANCH
-            ssh -o "StrictHostKeyChecking no" -i ~/shopsys root@shopsys.p4a.me mkdir -p /workspace/shopsys/$CIRCLE_BRANCH
-            ssh -o "StrictHostKeyChecking no" -i ~/shopsys root@shopsys.p4a.me git clone https://github.com/plispe/shopsys.git /workspace/shopsys/$CIRCLE_BRANCH/sources
-            ssh -o "StrictHostKeyChecking no" -i ~/shopsys root@shopsys.p4a.me chown -R www-data:www-data /workspace/shopsys/$CIRCLE_BRANCH/sources
-      - run:
-          name: Deploy application to Kubernetes cluster
-          command: |
-            kubectl apply -f namespace.yml
-            kubectl config set-context $(kubectl config current-context) --namespace=$CIRCLE_BRANCH
-            kubectl create configmap nginx-configuration --from-file ../docker/nginx/nginx.conf || true
-            kubectl create configmap php-configuration --from-file ../docker/php-fpm/php-ini-overrides.ini || true
-            kubectl apply --recursive -f .
-          working_directory: project-base/k8s
-      - run:
-          name: Wait for rollouts
-          command: |
-            # Whole step will be reduced to one command in the future(When readiness probe will be implemented)
-            declare -a deployments_to_wait_for=(
-              "adminer"
-              "postgres"
-              "redis"
-              "redis-admin"
-              "selenium-server"
-              "smtp-server"
-              "webserver"
-            )
+            cd .. && tar -zcvf source.tar.gz source
+            ssh -i -o "StrictHostKeyChecking no" ~/shopsys root@shopsys.p4a.me mkdir -p /workspace/shopsys/$CIRCLE_BRANCH
+            ssh -i ~/shopsys root@shopsys.p4a.me rm -rf /workspace/shopsys/$CIRCLE_BRANCH/*
+            scp -i ~/shopsys source.tar.gz root@shopsys.p4a.me:/workspace/shopsys/$CIRCLE_BRANCH/source.tar.gz
+            ssh -i ~/shopsys root@shopsys.p4a.me tar -zxvf /workspace/shopsys/$CIRCLE_BRANCH/source.tar.gz -C /workspace/shopsys/$CIRCLE_BRANCH/
+            ssh -i ~/shopsys root@shopsys.p4a.me rm /workspace/shopsys/$CIRCLE_BRANCH/source.tar.gz
+            ssh -i ~/shopsys root@shopsys.p4a.me mkdir -p /workspace/shopsys/$CIRCLE_BRANCH/db
+            ssh -i ~/shopsys root@shopsys.p4a.me chown -R www-data:www-data /workspace/shopsys/$CIRCLE_BRANCH
+            rm -rf source.tar.gz
+            cd source
+      # - run:
+      #     name: Generate Kubernetes manifests for current build
+      #     command: |
+      #       DOCKER_IMAGE_TAG="$(cksum ../docker/php-fpm/Dockerfile | cut -d ' ' -f1)"
+      #       yq write --inplace namespace.yml metadata.name $CIRCLE_BRANCH
+      #       yq write --inplace ingress.yml spec.rules[0].host $CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
+      #       yq write --inplace deployments/webserver.yml spec.template.spec.containers[1].image $DOCKER_IMAGE:$DOCKER_IMAGE_TAG
+      #       yq write --inplace deployments/webserver.yml spec.template.spec.volumes[0].hostPath.path /workspace/shopsys/$CIRCLE_BRANCH/sources
+      #     working_directory: project-base/k8s
+      #     environment:
+      #       DEVELOPMENT_SERVER_DOMAIN: p4a.me
+      # - run:
+      #     name: Setup Kubernetes cluster connection
+      #     command: |
+      #       mkdir -p ~/.minikube
+      #       mkdir -p ~/.kube
+      #       echo -e $KUBERNETES_CONFIG_FILE > ~/.kube/config
+      #       echo -e $KUBERNETES_CA_CRT > ~/.minikube/ca.crt
+      #       echo -e $KUBERNETES_CLIENT_CRT > ~/.minikube/client.crt
+      #       echo -e $KUBERNETES_CLIENT_KEY > ~/.minikube/client.key
 
-            for deployment in "${deployments_to_wait_for[@]}"
-            do
-              kubectl rollout status deployment/$deployment --watch
-            done
-      - run:
-          name: Install composer dependencies
-          command: |
-            PHP_FPM_POD=$(kubectl get pods -l app=webserver -o=jsonpath='{.items[0].metadata.name}')
-            kubectl exec $PHP_FPM_POD -c php composer global require hirak/prestissimo
-            kubectl exec $PHP_FPM_POD -c php -- composer config -g github-oauth.github.com $COMPOSER_GITHUB_OATUH_TOKEN
-            # kubectl exec $PHP_FPM_POD -c php -- cp project-base/app/config/domains_urls.yml.dist project-base/app/config/domains_urls.yml
-            kubectl exec $PHP_FPM_POD -c php -- composer install --no-interaction --no-progress
-      - store_artifacts:
-          path: project-base/k8s
+      # - run:
+      #     name: Deploy application to Kubernetes cluster
+      #     command: |
+      #       kubectl apply -f namespace.yml
+      #       kubectl config set-context $(kubectl config current-context) --namespace=$CIRCLE_BRANCH
+      #       kubectl create configmap nginx-configuration --from-file ../docker/nginx/nginx.conf || true
+      #       kubectl create configmap php-configuration --from-file ../docker/php-fpm/php-ini-overrides.ini || true
+      #       kubectl apply --recursive -f .
+      #     working_directory: project-base/k8s
+      # - run:
+      #     name: Wait for rollouts
+      #     command: |
+      #       # Whole step will be reduced to one command in the future(When readiness probe will be implemented)
+      #       declare -a deployments_to_wait_for=(
+      #         "adminer"
+      #         "postgres"
+      #         "redis"
+      #         "redis-admin"
+      #         "selenium-server"
+      #         "smtp-server"
+      #         "webserver"
+      #       )
+
+      #       for deployment in "${deployments_to_wait_for[@]}"
+      #       do
+      #         kubectl rollout status deployment/$deployment --watch
+      #       done
+      # - run:
+      #     name: Install composer dependencies
+      #     command: |
+      #       PHP_FPM_POD=$(kubectl get pods -l app=webserver -o=jsonpath='{.items[0].metadata.name}')
+      #       kubectl exec $PHP_FPM_POD -c php composer global require hirak/prestissimo
+      #       kubectl exec $PHP_FPM_POD -c php -- composer config -g github-oauth.github.com $COMPOSER_GITHUB_OATUH_TOKEN
+      #       # kubectl exec $PHP_FPM_POD -c php -- cp project-base/app/config/domains_urls.yml.dist project-base/app/config/domains_urls.yml
+      #       kubectl exec $PHP_FPM_POD -c php -- composer install --no-interaction --no-progress
+      # - store_artifacts:
+      #     path: project-base/k8s
 
 workflows:
   version: 2
