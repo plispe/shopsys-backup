@@ -44,7 +44,7 @@ jobs:
           command: |
             DOCKER_IMAGE_TAG="$(cksum ../docker/php-fpm/Dockerfile | cut -d ' ' -f1)"
             yq write --inplace ingress.yml spec.rules[0].host $CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
-            yq write --inplace deployments/webserver.yml spec.template.metadata.labels.build "$CIRCLE_BUILD_NUM"
+            yq write --inplace deployments/webserver.yml spec.template.metadata.labels.commit $CIRCLE_SHA1
             yq write --inplace deployments/webserver.yml spec.template.spec.containers[0].image $DOCKER_IMAGE:$DOCKER_IMAGE_TAG
             yq write --inplace deployments/webserver.yml spec.template.spec.volumes[0].hostPath.path /workspace/shopsys/$CIRCLE_BRANCH/source
             yq write --inplace deployments/postgres.yml spec.template.spec.volumes[0].hostPath.path /workspace/shopsys/$CIRCLE_BRANCH/db
