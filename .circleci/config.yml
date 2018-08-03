@@ -40,6 +40,28 @@ jobs:
             docker image push $DOCKER_IMAGE:latest)
           working_directory: project-base/docker/php-fpm
       - run:
+          name: Generate Kubernetes manifests for current build
+          command: |
+            DOCKER_IMAGE_TAG="$(cksum ../docker/php-fpm/Dockerfile | cut -d ' ' -f1)"
+            yq write --inplace namespace.yml metadata.name $CIRCLE_BRANCH
+            yq write --inplace ingress.yml spec.rules[0].host $CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
+            yq write --inplace deployments/webserver.yml spec.template.spec.containers[1].image $DOCKER_IMAGE:$DOCKER_IMAGE_TAG
+            yq write --inplace deployments/webserver.yml spec.template.spec.volumes[0].hostPath.path /workspace/shopsys/$CIRCLE_BRANCH/source
+          working_directory: project-base/k8s
+          environment:
+            DEVELOPMENT_SERVER_DOMAIN: p4a.me
+      - run:
+          name: Setup domain file
+          command: |
+            cp project-base/app/config/domains_urls.yml.dist project-base/app/config/domains_urls.yml
+            yq write --inplace project-base/app/config/domains_urls.yml domains_urls[0].url $CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
+            yq write --inplace project-base/app/config/domains_urls.yml domains_urls[0].port 8080
+            yq write --inplace project-base/app/config/domains_urls.yml domains_urls[1].url 2$CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
+            yq write --inplace project-base/app/config/domains_urls.yml domains_urls[0].port 8080
+          environment:
+            DEVELOPMENT_SERVER_DOMAIN: p4a.me
+      - run:
+          # @matous.czerner On shopsys server you can omit whole step
           name: Copy source into cluster
           command: |
             echo -e $SERVER_SSL_CERT > ~/shopsys
@@ -55,17 +77,7 @@ jobs:
             rm -rf source.tar.gz
             cd source
       - run:
-          name: Generate Kubernetes manifests for current build
-          command: |
-            DOCKER_IMAGE_TAG="$(cksum ../docker/php-fpm/Dockerfile | cut -d ' ' -f1)"
-            yq write --inplace namespace.yml metadata.name $CIRCLE_BRANCH
-            yq write --inplace ingress.yml spec.rules[0].host $CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
-            yq write --inplace deployments/webserver.yml spec.template.spec.containers[1].image $DOCKER_IMAGE:$DOCKER_IMAGE_TAG
-            yq write --inplace deployments/webserver.yml spec.template.spec.volumes[0].hostPath.path /workspace/shopsys/$CIRCLE_BRANCH/source
-          working_directory: project-base/k8s
-          environment:
-            DEVELOPMENT_SERVER_DOMAIN: p4a.me
-      - run:
+          # @matous.czerner On shopsys server you can omit whole step
           name: Setup Kubernetes cluster connection
           command: |
             mkdir -p ~/.minikube
@@ -77,8 +89,8 @@ jobs:
       - run:
           name: Deploy application to Kubernetes cluster
           command: |
-            kubectl apply -f namespace.yml
             kubectl config set-context $(kubectl config current-context) --namespace=$CIRCLE_BRANCH
+            kubectl create namespace $CIRCLE_BRANCH || true
             kubectl create configmap nginx-configuration --from-file ../docker/nginx/nginx.conf || true
             kubectl create configmap php-configuration --from-file ../docker/php-fpm/php-ini-overrides.ini || true
             kubectl apply --recursive -f .
@@ -87,30 +99,20 @@ jobs:
           name: Wait for rollouts
           command: |
             # Whole step will be reduced to one command in the future(When readiness probe will be implemented)
-            declare -a deployments_to_wait_for=(
-              "adminer"
-              "postgres"
-              "redis"
-              "redis-admin"
-              "selenium-server"
-              "smtp-server"
-              "webserver"
-            )
-
-            for deployment in "${deployments_to_wait_for[@]}"
-            do
-              kubectl rollout status deployment/$deployment --watch
-            done
+            kubectl rollout status deployment/adminer --watch
+            kubectl rollout status deployment/postgres --watch
+            kubectl rollout status deployment/redis --watch
+            kubectl rollout status deployment/redis-admin --watch
+            kubectl rollout status deployment/selenium-server --watch
+            kubectl rollout status deployment/smtp-server --watch
+            kubectl rollout status deployment/webserver --watch
       - run:
           name: Install composer dependencies
           command: |
             PHP_FPM_POD=$(kubectl get pods -l app=webserver -o=jsonpath='{.items[0].metadata.name}')
-            kubectl exec $PHP_FPM_POD -c php composer global require hirak/prestissimo
             kubectl exec $PHP_FPM_POD -c php -- composer config -g github-oauth.github.com $COMPOSER_GITHUB_OATUH_TOKEN
-            kubectl exec $PHP_FPM_POD -c php -- ls -la
-            # kubectl exec $PHP_FPM_POD -c php -- cp project-base/app/config/domains_urls.yml.dist project-base/app/config/domains_urls.yml
-            # kubectl exec $PHP_FPM_POD -c php -- composer install --optimize-autoloader --no-interaction --no-progress
-            # kubectl exec $PHP_FPM_POD -c php ./phing db-create test-db-create build-demo-dev
+            kubectl exec $PHP_FPM_POD -c php -- composer install --optimize-autoloader --no-interaction --no-progress
+            kubectl exec $PHP_FPM_POD -c php ./phing db-create test-db-create build-demo-dev
       - store_artifacts:
           path: project-base/k8s
 
