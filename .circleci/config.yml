@@ -54,17 +54,17 @@ jobs:
             ssh -i ~/shopsys root@shopsys.p4a.me chown -R www-data:www-data /workspace/shopsys/$CIRCLE_BRANCH
             rm -rf source.tar.gz
             cd source
-      # - run:
-      #     name: Generate Kubernetes manifests for current build
-      #     command: |
-      #       DOCKER_IMAGE_TAG="$(cksum ../docker/php-fpm/Dockerfile | cut -d ' ' -f1)"
-      #       yq write --inplace namespace.yml metadata.name $CIRCLE_BRANCH
-      #       yq write --inplace ingress.yml spec.rules[0].host $CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
-      #       yq write --inplace deployments/webserver.yml spec.template.spec.containers[1].image $DOCKER_IMAGE:$DOCKER_IMAGE_TAG
-      #       yq write --inplace deployments/webserver.yml spec.template.spec.volumes[0].hostPath.path /workspace/shopsys/$CIRCLE_BRANCH/sources
-      #     working_directory: project-base/k8s
-      #     environment:
-      #       DEVELOPMENT_SERVER_DOMAIN: p4a.me
+      - run:
+          name: Generate Kubernetes manifests for current build
+          command: |
+            DOCKER_IMAGE_TAG="$(cksum ../docker/php-fpm/Dockerfile | cut -d ' ' -f1)"
+            yq write --inplace namespace.yml metadata.name $CIRCLE_BRANCH
+            yq write --inplace ingress.yml spec.rules[0].host $CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
+            yq write --inplace deployments/webserver.yml spec.template.spec.containers[1].image $DOCKER_IMAGE:$DOCKER_IMAGE_TAG
+            yq write --inplace deployments/webserver.yml spec.template.spec.volumes[0].hostPath.path /workspace/shopsys/$CIRCLE_BRANCH/sources
+          working_directory: project-base/k8s
+          environment:
+            DEVELOPMENT_SERVER_DOMAIN: p4a.me
       # - run:
       #     name: Setup Kubernetes cluster connection
       #     command: |
