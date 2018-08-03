@@ -9,5 +9,5 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: shopsys
+          serviceName: webserver
           servicePort: 80
