@@ -9,6 +9,10 @@ spec:
       labels:
         app: postgres
     spec:
+      volumes:
+        - name: data
+          hostPath:
+            path: /workspace
       containers:
       - name: postgres
         image: postgres:9.5-alpine
@@ -16,6 +20,9 @@ spec:
         - name: postgres
           containerPort: 5432
           protocol: TCP
+        volumeMounts:
+          - name: data
+            mountPath: /var/lib/postgresql/data
         env:
           - name: POSTGRES_USER
             value: root
