@@ -56,13 +56,14 @@ jobs:
           environment:
             DEVELOPMENT_SERVER_DOMAIN: p4a.me
       - run:
-          name: Setup domain file
+          name: Setup domain file and test parameters
           command: |
             cp project-base/app/config/domains_urls.yml.dist project-base/app/config/domains_urls.yml
+            cp project-base/app/config/parameters_test.yml.dist project-base/app/config/parameters_test.yml
+            cp project-base/app/config/parameters.yml.dist project-base/app/config/parameters.yml
             yq write --inplace project-base/app/config/domains_urls.yml domains_urls[0].url http://$CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN:8080
-            # yq write --inplace project-base/app/config/domains_urls.yml domains_urls[0].port 8080
             yq write --inplace project-base/app/config/domains_urls.yml domains_urls[1].url http://2$CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN:8080
-            # yq write --inplace project-base/app/config/domains_urls.yml domains_urls[0].port 8080
+
           environment:
             DEVELOPMENT_SERVER_DOMAIN: p4a.me
       - run:
@@ -96,7 +97,7 @@ jobs:
           command: |
             kubectl config set-context $(kubectl config current-context) --namespace=$CIRCLE_BRANCH
             kubectl create namespace $CIRCLE_BRANCH || true
-            kubectl create configmap nginx-configuration --from-file ../docker/nginx/nginx.conf || true
+            kubectl create configmap nginx-configuration --from-file ../../docker/nginx/nginx.conf || true
             kubectl create configmap php-configuration --from-file ../docker/php-fpm/php-ini-overrides.ini || true
             kubectl apply --recursive -f .
           working_directory: project-base/k8s
