@@ -10,4 +10,4 @@ spec:
       - path: /
         backend:
           serviceName: webserver
-          servicePort: 80
+          servicePort: 8080
