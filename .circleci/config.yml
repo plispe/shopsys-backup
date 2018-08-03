@@ -114,7 +114,7 @@ jobs:
       - run:
           name: Install composer dependencies
           command: |
-            PHP_FPM_POD=$(kubectl get pods -l app=webserver -o=jsonpath='{.items[0].metadata.name}')
+            PHP_FPM_POD=$(kubectl get pods -l app=webserver,commit=$CIRCLE_SHA1 -o=jsonpath='{.items[0].metadata.name}')
             kubectl exec $PHP_FPM_POD -c php -- composer config -g github-oauth.github.com $COMPOSER_GITHUB_OATUH_TOKEN
             kubectl exec $PHP_FPM_POD -c php -- composer global require hirak/prestissimo
             kubectl exec $PHP_FPM_POD -c php -- composer install --optimize-autoloader --no-interaction --no-progress
