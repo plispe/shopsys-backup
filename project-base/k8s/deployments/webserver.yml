@@ -20,6 +20,7 @@ spec:
       - ip: "127.0.0.1"
         hostnames:
         - "php-fpm"
+        - "webserver"
       volumes:
         - name: sources
           hostPath:
@@ -60,4 +61,15 @@ spec:
             exec:
               command:
               - nginx -s quit
+
+      - name: selenium
+        image: selenium/standalone-chrome:3.11
+        ports:
+          - name: selenium
+            containerPort: 4444
+        env:
+          - name: HUB_PORT_4444_TCP_ADDR
+            value: hub
+          - name: HUB_PORT_4444_TCP_PORT
+            value: "4444"
 
