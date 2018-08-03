@@ -55,9 +55,9 @@ jobs:
           command: |
             cp project-base/app/config/domains_urls.yml.dist project-base/app/config/domains_urls.yml
             yq write --inplace project-base/app/config/domains_urls.yml domains_urls[0].url $CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
-            yq write --inplace project-base/app/config/domains_urls.yml domains_urls[0].port 8080
+            # yq write --inplace project-base/app/config/domains_urls.yml domains_urls[0].port 8080
             yq write --inplace project-base/app/config/domains_urls.yml domains_urls[1].url 2$CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
-            yq write --inplace project-base/app/config/domains_urls.yml domains_urls[0].port 8080
+            # yq write --inplace project-base/app/config/domains_urls.yml domains_urls[0].port 8080
           environment:
             DEVELOPMENT_SERVER_DOMAIN: p4a.me
       - run:
