@@ -54,7 +54,7 @@ jobs:
             DOCKER_IMAGE_TAG="$(cksum ../docker/php-fpm/Dockerfile | cut -d ' ' -f1)"
             # Write domain records into ingress resource
             yq write --inplace ingress.yml spec.rules[0].host $CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
-            yq write --inplace ingress.yml spec.rules[0].host 2.$CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
+            yq write --inplace ingress.yml spec.rules[1].host 2.$CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
             # Following 2 lines are very important. We must redeploy postgress and webserver because of hostPath volumes
             yq write --inplace deployments/postgres.yml spec.template.metadata.labels.commit $CIRCLE_SHA1
             yq write --inplace deployments/webserver.yml spec.template.metadata.labels.commit $CIRCLE_SHA1
