@@ -67,8 +67,8 @@ jobs:
             yq write --inplace deployments/webserver.yml spec.template.spec.volumes[0].hostPath.path /workspace/shopsys/$CIRCLE_BRANCH/source
             yq write --inplace deployments/postgres.yml spec.template.spec.volumes[0].hostPath.path /workspace/shopsys/$CIRCLE_BRANCH/db
             # Create configmap manifests
-            kubectl create configmap nginx-configuration --from-file ../../docker/nginx/nginx.conf --dry-run --output=yaml > configmaps/nginx-configuration.yml
-            kubectl create configmap php-configuration --from-file ../docker/php-fpm/php-ini-overrides.ini --dry-run --output=yaml > configmaps/php-configuration.yml
+            kubectl create configmap nginx-configuration --from-file ../../docker/nginx/nginx.conf --dry-run --output=yaml > nginx-configuration.yml
+            kubectl create configmap php-configuration --from-file ../docker/php-fpm/php-ini-overrides.ini --dry-run --output=yaml > php-configuration.yml
           working_directory: project-base/k8s
           environment:
             DEVELOPMENT_SERVER_DOMAIN: p4a.me
