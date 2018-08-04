@@ -112,6 +112,8 @@ jobs:
       - run:
           name: Deploy application to Kubernetes cluster
           command: |
+            # Delete namespace (we need redeploy deployments)
+            kubectl delete namespace $CIRCLE_BRANCH || true
             # Create kubernetes namepace if not exists
             kubectl create namespace $CIRCLE_BRANCH || true
             # After this command you will comunicate with newly created namespace in every kubectl command
