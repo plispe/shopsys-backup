@@ -83,7 +83,7 @@ jobs:
       - restore_cache:
           key: composer-lock-{{ checksum "composer.json" }} 
           name: Restore composer.lock from cache
-               
+
       - run:
           # This step simply copies source code over ssh and set required permisions
           name: Copy source into cluster
@@ -152,7 +152,8 @@ jobs:
           command: kubectl exec -n master webserver-74869fb784-xbvfg cat /var/www/html/composer.lock > composer.lock
 
       - save_cache:
-          path: composer.lock
+          paths: 
+            - composer.lock
           key: composer-lock-{{ checksum "composer.json" }}    
 workflows:
   version: 2
