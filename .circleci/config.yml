@@ -42,12 +42,8 @@ jobs:
           # Setup connection to minikube kubernetes cluster cluster
           name: Setup Kubernetes cluster connection
           command: |
-            mkdir -p ~/.minikube
             mkdir -p ~/.kube
             echo -e $KUBERNETES_CONFIG_FILE > ~/.kube/config
-            echo -e $KUBERNETES_CA_CRT > ~/.minikube/ca.crt
-            echo -e $KUBERNETES_CLIENT_CRT > ~/.minikube/client.crt
-            echo -e $KUBERNETES_CLIENT_KEY > ~/.minikube/client.key
       - run:
           name: Generate Kubernetes manifests for current build
           command: |
