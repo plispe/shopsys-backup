@@ -78,7 +78,7 @@ jobs:
             cp project-base/app/config/parameters_test.yml.dist project-base/app/config/parameters_test.yml
             cp project-base/app/config/parameters.yml.dist project-base/app/config/parameters.yml
             # Add domains into domain file
-            yq write --inplace project-base/app/config/domains_urls.yml domains_urls[0].url http://$CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN$:$NGINX_INGRESS_CONTROLLER_HOST_PORT
+            yq write --inplace project-base/app/config/domains_urls.yml domains_urls[0].url http://$CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN:$NGINX_INGRESS_CONTROLLER_HOST_PORT
             yq write --inplace project-base/app/config/domains_urls.yml domains_urls[1].url http://2.$CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN:$NGINX_INGRESS_CONTROLLER_HOST_PORT
       - run:
           # This step simply copies source code over ssh and set required permisions
