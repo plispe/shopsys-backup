@@ -42,8 +42,12 @@ jobs:
           # Setup connection to minikube kubernetes cluster cluster
           name: Setup Kubernetes cluster connection
           command: |
+            mkdir -p ~/.minikube
             mkdir -p ~/.kube
             echo -e $KUBERNETES_CONFIG_FILE > ~/.kube/config
+            echo -e $KUBERNETES_CA_CRT > ~/.minikube/ca.crt
+            echo -e $KUBERNETES_CLIENT_CRT > ~/.minikube/client.crt
+            echo -e $KUBERNETES_CLIENT_KEY > ~/.minikube/client.key
       - run:
           name: Generate Kubernetes manifests for current build
           command: |
@@ -80,8 +84,6 @@ jobs:
             # Add domains into domain file
             yq write --inplace project-base/app/config/domains_urls.yml domains_urls[0].url http://$CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
             yq write --inplace project-base/app/config/domains_urls.yml domains_urls[1].url http://2.$CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN
-          environment:
-            DEVELOPMENT_SERVER_DOMAIN: p4a.me
       - run:
           # This step simply copies source code over ssh and set required permisions
           name: Copy source into cluster
@@ -92,19 +94,19 @@ jobs:
             # create archive with source code
             cd .. && tar -zcvf source.tar.gz source
             # create workspace directory if not exists
-            ssh -o "StrictHostKeyChecking no" -i ~/shopsys root@shopsys.p4a.me mkdir -p /workspace/shopsys/$CIRCLE_BRANCH
+            ssh -o "StrictHostKeyChecking no" -i ~/shopsys $SERVER_SSL_CONNECTION mkdir -p /workspace/shopsys/$CIRCLE_BRANCH
             # remove database and source code from cluster
-            ssh -i ~/shopsys root@shopsys.p4a.me rm -rf /workspace/shopsys/$CIRCLE_BRANCH/*
+            ssh -i ~/shopsys $SERVER_SSL_CONNECTION rm -rf /workspace/shopsys/$CIRCLE_BRANCH/*
             # copy source codes in cluster
-            scp -i ~/shopsys source.tar.gz root@shopsys.p4a.me:/workspace/shopsys/$CIRCLE_BRANCH/source.tar.gz
+            scp -i ~/shopsys source.tar.gz $SERVER_SSL_CONNECTION:/workspace/shopsys/$CIRCLE_BRANCH/source.tar.gz
             # unpack source codes on server
-            ssh -i ~/shopsys root@shopsys.p4a.me tar -zxvf /workspace/shopsys/$CIRCLE_BRANCH/source.tar.gz -C /workspace/shopsys/$CIRCLE_BRANCH/
+            ssh -i ~/shopsys $SERVER_SSL_CONNECTION tar -zxvf /workspace/shopsys/$CIRCLE_BRANCH/source.tar.gz -C /workspace/shopsys/$CIRCLE_BRANCH/
             # remove archive
-            ssh -i ~/shopsys root@shopsys.p4a.me rm /workspace/shopsys/$CIRCLE_BRANCH/source.tar.gz
+            ssh -i ~/shopsys $SERVER_SSL_CONNECTION rm /workspace/shopsys/$CIRCLE_BRANCH/source.tar.gz
             # create directory for database persistent volume
-            ssh -i ~/shopsys root@shopsys.p4a.me mkdir -p /workspace/shopsys/$CIRCLE_BRANCH/db
+            ssh -i ~/shopsys $SERVER_SSL_CONNECTION mkdir -p /workspace/shopsys/$CIRCLE_BRANCH/db
             # change file owner to www-data user (same as in container)
-            ssh -i ~/shopsys root@shopsys.p4a.me chown -R www-data:www-data /workspace/shopsys/$CIRCLE_BRANCH
+            ssh -i ~/shopsys $SERVER_SSL_CONNECTION chown -R www-data:www-data /workspace/shopsys/$CIRCLE_BRANCH
       - run:
           name: Deploy application to Kubernetes cluster
           command: |
