@@ -80,6 +80,10 @@ jobs:
             # Add domains into domain file
             yq write --inplace project-base/app/config/domains_urls.yml domains_urls[0].url http://$CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN:$NGINX_INGRESS_CONTROLLER_HOST_PORT
             yq write --inplace project-base/app/config/domains_urls.yml domains_urls[1].url http://2.$CIRCLE_BRANCH.$DEVELOPMENT_SERVER_DOMAIN:$NGINX_INGRESS_CONTROLLER_HOST_PORT
+      - restore_cache:
+          key: composer-lock-{{ checksum "composer.json" }} 
+          name: Restore composer.lock from cache
+               
       - run:
           # This step simply copies source code over ssh and set required permisions
           name: Copy source into cluster
@@ -138,12 +142,18 @@ jobs:
             kubectl exec $PHP_FPM_POD -c php -- composer config -g github-oauth.github.com $COMPOSER_GITHUB_OATUH_TOKEN
             kubectl exec $PHP_FPM_POD -c php -- composer global require hirak/prestissimo
             kubectl exec $PHP_FPM_POD -c php -- composer install --optimize-autoloader --no-interaction --no-progress
+      # - run:
+      #     name: Run tests
+      #     command: |
+      #       PHP_FPM_POD=$(kubectl get pods -l app=webserver,commit=$CIRCLE_SHA1 -o=jsonpath='{.items[0].metadata.name}')
+      #       kubectl exec $PHP_FPM_POD -c php ./phing db-create test-db-create build-demo-ci
       - run:
-          name: Run tests
-          command: |
-            PHP_FPM_POD=$(kubectl get pods -l app=webserver,commit=$CIRCLE_SHA1 -o=jsonpath='{.items[0].metadata.name}')
-            kubectl exec $PHP_FPM_POD -c php ./phing db-create test-db-create build-demo-ci
+          name: Copy composer.lock from pod 
+          command: kubectl exec -n master webserver-74869fb784-xbvfg cat /var/www/html/composer.lock > composer.lock
 
+      - save_cache:
+          path: composer.lock
+          key: composer-lock-{{ checksum "composer.json" }}    
 workflows:
   version: 2
   deployment:
